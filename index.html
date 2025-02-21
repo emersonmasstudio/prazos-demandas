@@ -10,10 +10,20 @@
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background-color: #f4f4f4; }
         button { margin-top: 10px; padding: 8px 12px; }
+        input { padding: 5px; margin: 5px; }
     </style>
 </head>
 <body>
     <h2>Tabela Interativa GitHub</h2>
+    
+    <div>
+        <input type="number" id="op" placeholder="OP" min="0">
+        <input type="text" id="musica" placeholder="Música">
+        <input type="text" id="cliente" placeholder="Cliente">
+        <input type="text" id="prazo" placeholder="Prazo Playback" pattern="\d{4}-\d{2}-\d{2}" title="Formato: YYYY-MM-DD">
+        <button onclick="insertData()">Inserir Dados</button>
+    </div>
+    
     <table id="dataTable">
         <thead>
             <tr>
@@ -26,8 +36,7 @@
         </thead>
         <tbody></tbody>
     </table>
-    <button onclick="addRow()">Adicionar Linha</button>
-    <button onclick="addColumn()">Adicionar Coluna</button>
+    
     <button onclick="saveData()">Salvar no GitHub</button>
 
     <script>
@@ -35,33 +44,29 @@
         const FILE_PATH = 'dados.json'; // Arquivo onde os dados serão salvos
         const TOKEN = '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'; // Substitua pelo seu token GitHub
         
-        function addRow() {
+        function insertData() {
+            let op = document.getElementById("op").value;
+            let musica = document.getElementById("musica").value;
+            let cliente = document.getElementById("cliente").value;
+            let prazo = document.getElementById("prazo").value;
+            
+            if (!op || !musica || !cliente || !prazo) {
+                alert("Preencha todos os campos corretamente.");
+                return;
+            }
+            
             let table = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
             let row = table.insertRow();
-            let columnCount = document.getElementById("dataTable").rows[0].cells.length - 1;
+            row.insertCell(0).innerText = op;
+            row.insertCell(1).innerText = musica;
+            row.insertCell(2).innerText = cliente;
+            row.insertCell(3).innerText = prazo;
+            row.insertCell(4).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
             
-            for (let i = 0; i < columnCount; i++) {
-                let cell = row.insertCell(i);
-                cell.innerHTML = '<input type="text">';
-            }
-            let cell = row.insertCell(columnCount);
-            cell.innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
-        }
-
-        function addColumn() {
-            let table = document.getElementById("dataTable");
-            let headerRow = table.rows[0];
-            let columnName = prompt("Nome da nova coluna:");
-            if (!columnName) return;
-            
-            let newHeader = document.createElement("th");
-            newHeader.innerText = columnName;
-            headerRow.insertBefore(newHeader, headerRow.lastElementChild);
-            
-            for (let i = 1; i < table.rows.length; i++) {
-                let newCell = table.rows[i].insertCell(table.rows[i].cells.length - 1);
-                newCell.innerHTML = '<input type="text">';
-            }
+            document.getElementById("op").value = "";
+            document.getElementById("musica").value = "";
+            document.getElementById("cliente").value = "";
+            document.getElementById("prazo").value = "";
         }
 
         function deleteRow(btn) {
@@ -72,18 +77,15 @@
         async function saveData() {
             let table = document.getElementById("dataTable");
             let data = [];
-            let headers = [];
-            
-            for (let i = 0; i < table.rows[0].cells.length - 1; i++) {
-                headers.push(table.rows[0].cells[i].innerText);
-            }
             
             for (let i = 1; i < table.rows.length; i++) {
                 let row = table.rows[i];
-                let rowData = {};
-                for (let j = 0; j < headers.length; j++) {
-                    rowData[headers[j]] = row.cells[j].children[0].value;
-                }
+                let rowData = {
+                    "OP": row.cells[0].innerText,
+                    "Música": row.cells[1].innerText,
+                    "Cliente": row.cells[2].innerText,
+                    "Prazo Playback": row.cells[3].innerText
+                };
                 data.push(rowData);
             }
 
