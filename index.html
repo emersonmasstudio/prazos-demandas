@@ -21,6 +21,9 @@
         <input type="text" id="musica" placeholder="Música">
         <input type="text" id="cliente" placeholder="Cliente">
         <input type="text" id="prazo" placeholder="Prazo Playback" pattern="\d{4}-\d{2}-\d{2}" title="Formato: YYYY-MM-DD">
+        <label>
+            <input type="checkbox" id="encerrado"> Encerrado
+        </label>
         <button onclick="insertData()">Inserir Dados</button>
     </div>
     
@@ -31,24 +34,24 @@
                 <th>Música</th>
                 <th>Cliente</th>
                 <th>Prazo Playback</th>
+                <th>Encerrado</th>
                 <th>Ação</th>
             </tr>
         </thead>
         <tbody></tbody>
     </table>
-    
-    <button onclick="saveData()">Salvar no GitHub</button>
 
     <script>
         const GITHUB_REPO = 'emersonmasstudio/prazos-demandas';  // Substitua pelo seu repositório
         const FILE_PATH = 'dados.json'; // Arquivo onde os dados serão salvos
         const TOKEN = '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'; // Substitua pelo seu token GitHub
         
-        function insertData() {
+        async function insertData() {
             let op = document.getElementById("op").value;
             let musica = document.getElementById("musica").value;
             let cliente = document.getElementById("cliente").value;
             let prazo = document.getElementById("prazo").value;
+            let encerrado = document.getElementById("encerrado").checked ? "Sim" : "Não";
             
             if (!op || !musica || !cliente || !prazo) {
                 alert("Preencha todos os campos corretamente.");
@@ -61,12 +64,16 @@
             row.insertCell(1).innerText = musica;
             row.insertCell(2).innerText = cliente;
             row.insertCell(3).innerText = prazo;
-            row.insertCell(4).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
+            row.insertCell(4).innerText = encerrado;
+            row.insertCell(5).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
             
             document.getElementById("op").value = "";
             document.getElementById("musica").value = "";
             document.getElementById("cliente").value = "";
             document.getElementById("prazo").value = "";
+            document.getElementById("encerrado").checked = false;
+            
+            saveData();
         }
 
         function deleteRow(btn) {
@@ -84,7 +91,8 @@
                     "OP": row.cells[0].innerText,
                     "Música": row.cells[1].innerText,
                     "Cliente": row.cells[2].innerText,
-                    "Prazo Playback": row.cells[3].innerText
+                    "Prazo Playback": row.cells[3].innerText,
+                    "Encerrado": row.cells[4].innerText
                 };
                 data.push(rowData);
             }
@@ -111,7 +119,6 @@
                     sha: sha
                 })
             });
-            alert("Dados salvos no GitHub!");
         }
     </script>
 </body>
