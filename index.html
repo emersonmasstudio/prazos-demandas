@@ -21,9 +21,6 @@
         <input type="text" id="musica" placeholder="Música">
         <input type="text" id="cliente" placeholder="Cliente">
         <input type="text" id="prazo" placeholder="Prazo Playback" pattern="\d{4}-\d{2}-\d{2}" title="Formato: YYYY-MM-DD">
-        <label>
-            <input type="checkbox" id="encerrado"> Encerrado
-        </label>
         <button onclick="insertData()">Inserir Dados</button>
     </div>
     
@@ -51,7 +48,6 @@
             let musica = document.getElementById("musica").value;
             let cliente = document.getElementById("cliente").value;
             let prazo = document.getElementById("prazo").value;
-            let encerrado = document.getElementById("encerrado").checked ? "Sim" : "Não";
             
             if (!op || !musica || !cliente || !prazo) {
                 alert("Preencha todos os campos corretamente.");
@@ -64,14 +60,13 @@
             row.insertCell(1).innerText = musica;
             row.insertCell(2).innerText = cliente;
             row.insertCell(3).innerText = prazo;
-            row.insertCell(4).innerText = encerrado;
+            row.insertCell(4).innerHTML = '<input type="checkbox">';
             row.insertCell(5).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
             
             document.getElementById("op").value = "";
             document.getElementById("musica").value = "";
             document.getElementById("cliente").value = "";
             document.getElementById("prazo").value = "";
-            document.getElementById("encerrado").checked = false;
             
             saveData();
         }
@@ -87,12 +82,13 @@
             
             for (let i = 1; i < table.rows.length; i++) {
                 let row = table.rows[i];
+                let encerrado = row.cells[4].children[0].checked ? "Sim" : "Não";
                 let rowData = {
                     "OP": row.cells[0].innerText,
                     "Música": row.cells[1].innerText,
                     "Cliente": row.cells[2].innerText,
                     "Prazo Playback": row.cells[3].innerText,
-                    "Encerrado": row.cells[4].innerText
+                    "Encerrado": encerrado
                 };
                 data.push(rowData);
             }
