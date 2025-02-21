@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tabela GitHub</title>
+    <title>Tabela Local</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
         table { width: 80%; margin: 20px auto; border-collapse: collapse; }
@@ -14,7 +14,7 @@
     </style>
 </head>
 <body>
-    <h2>Tabela Interativa GitHub</h2>
+    <h2>Tabela Local (Salva no Navegador)</h2>
     
     <div>
         <input type="number" id="op" placeholder="OP" min="0">
@@ -39,21 +39,33 @@
     </table>
 
     <script>
-        const GITHUB_REPO = 'emersonmasstudio/prazos-demandas';  // Substitua pelo seu repositório
-        const FILE_PATH = 'dados.json'; // Arquivo onde os dados serão salvos
-        const TOKEN = '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'; // Substitua pelo seu token GitHub
-        
-        async function insertData() {
+        function loadData() {
+            let data = localStorage.getItem("tabelaDados");
+            if (data) {
+                let table = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
+                JSON.parse(data).forEach(rowData => {
+                    let row = table.insertRow();
+                    row.insertCell(0).innerText = rowData.OP;
+                    row.insertCell(1).innerText = rowData.Musica;
+                    row.insertCell(2).innerText = rowData.Cliente;
+                    row.insertCell(3).innerText = rowData.Prazo;
+                    row.insertCell(4).innerHTML = `<input type="checkbox" ${rowData.Encerrado === "Sim" ? "checked" : ""}>`;
+                    row.insertCell(5).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
+                });
+            }
+        }
+
+        function insertData() {
             let op = document.getElementById("op").value;
             let musica = document.getElementById("musica").value;
             let cliente = document.getElementById("cliente").value;
             let prazo = document.getElementById("prazo").value;
-            
+
             if (!op || !musica || !cliente || !prazo) {
                 alert("Preencha todos os campos corretamente.");
                 return;
             }
-            
+
             let table = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
             let row = table.insertRow();
             row.insertCell(0).innerText = op;
@@ -62,60 +74,42 @@
             row.insertCell(3).innerText = prazo;
             row.insertCell(4).innerHTML = '<input type="checkbox">';
             row.insertCell(5).innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
-            
+
             document.getElementById("op").value = "";
             document.getElementById("musica").value = "";
             document.getElementById("cliente").value = "";
             document.getElementById("prazo").value = "";
-            
+
             saveData();
         }
 
         function deleteRow(btn) {
             let row = btn.parentNode.parentNode;
             row.parentNode.removeChild(row);
+            saveData();
         }
-        
-        async function saveData() {
+
+        function saveData() {
             let table = document.getElementById("dataTable");
             let data = [];
-            
+
             for (let i = 1; i < table.rows.length; i++) {
                 let row = table.rows[i];
                 let encerrado = row.cells[4].children[0].checked ? "Sim" : "Não";
                 let rowData = {
                     "OP": row.cells[0].innerText,
-                    "Música": row.cells[1].innerText,
+                    "Musica": row.cells[1].innerText,
                     "Cliente": row.cells[2].innerText,
-                    "Prazo Playback": row.cells[3].innerText,
+                    "Prazo": row.cells[3].innerText,
                     "Encerrado": encerrado
                 };
                 data.push(rowData);
             }
 
-            let jsonData = JSON.stringify(data, null, 2);
-            
-            const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-                method: "GET",
-                headers: { "Authorization": `token ${TOKEN}` }
-            });
-
-            const fileData = await response.json();
-            const sha = fileData.sha; 
-            
-            await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`, {
-                method: "PUT",
-                headers: {
-                    "Authorization": `token ${TOKEN}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    message: "Atualizando dados",
-                    content: btoa(jsonData),
-                    sha: sha
-                })
-            });
+            localStorage.setItem("tabelaDados", JSON.stringify(data));
         }
+
+        window.onload = loadData;
     </script>
 </body>
 </html>
