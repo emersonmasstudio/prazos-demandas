@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabela GitHub</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        table { width: 80%; margin: 20px auto; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+        th { background-color: #f4f4f4; }
+        button { margin-top: 10px; padding: 8px 12px; }
+    </style>
+</head>
+<body>
+    <h2>Tabela Interativa GitHub</h2>
+    <table id="dataTable">
+        <thead>
+            <tr>
+                <th>OP</th>
+                <th>Música</th>
+                <th>Cliente</th>
+                <th>Prazo Playback</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button onclick="addRow()">Adicionar Linha</button>
+    <button onclick="addColumn()">Adicionar Coluna</button>
+    <button onclick="saveData()">Salvar no GitHub</button>
+
+    <script>
+        const GITHUB_REPO = 'usuario/repo';  // Substitua pelo seu repositório
+        const FILE_PATH = 'dados.json'; // Arquivo onde os dados serão salvos
+        const TOKEN = 'seu_token'; // Substitua pelo seu token GitHub
+        
+        function addRow() {
+            let table = document.getElementById("dataTable").getElementsByTagName('tbody')[0];
+            let row = table.insertRow();
+            let columnCount = document.getElementById("dataTable").rows[0].cells.length - 1;
+            
+            for (let i = 0; i < columnCount; i++) {
+                let cell = row.insertCell(i);
+                cell.innerHTML = '<input type="text">';
+            }
+            let cell = row.insertCell(columnCount);
+            cell.innerHTML = '<button onclick="deleteRow(this)">Remover</button>';
+        }
+
+        function addColumn() {
+            let table = document.getElementById("dataTable");
+            let headerRow = table.rows[0];
+            let columnName = prompt("Nome da nova coluna:");
+            if (!columnName) return;
+            
+            let newHeader = document.createElement("th");
+            newHeader.innerText = columnName;
+            headerRow.insertBefore(newHeader, headerRow.lastElementChild);
+            
+            for (let i = 1; i < table.rows.length; i++) {
+                let newCell = table.rows[i].insertCell(table.rows[i].cells.length - 1);
+                newCell.innerHTML = '<input type="text">';
+            }
+        }
+
+        function deleteRow(btn) {
+            let row = btn.parentNode.parentNode;
+            row.parentNode.removeChild(row);
+        }
+        
+        async function saveData() {
+            let table = document.getElementById("dataTable");
+            let data = [];
+            let headers = [];
+            
+            for (let i = 0; i < table.rows[0].cells.length - 1; i++) {
+                headers.push(table.rows[0].cells[i].innerText);
+            }
+            
+            for (let i = 1; i < table.rows.length; i++) {
+                let row = table.rows[i];
+                let rowData = {};
+                for (let j = 0; j < headers.length; j++) {
+                    rowData[headers[j]] = row.cells[j].children[0].value;
+                }
+                data.push(rowData);
+            }
+
+            let jsonData = JSON.stringify(data, null, 2);
+            
+            const response = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                method: "GET",
+                headers: { "Authorization": `token ${TOKEN}` }
+            });
+
+            const fileData = await response.json();
+            const sha = fileData.sha; 
+            
+            await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${FILE_PATH}`, {
+                method: "PUT",
+                headers: {
+                    "Authorization": `token ${TOKEN}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    message: "Atualizando dados",
+                    content: btoa(jsonData),
+                    sha: sha
+                })
+            });
+            alert("Dados salvos no GitHub!");
+        }
+    </script>
+</body>
+</html>
